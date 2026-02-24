@@ -1,0 +1,32 @@
+pydicom>=2.4
+SimpleITK>=2.3
+numpy>=1.23,<2
+pillow>=10.0
+
+# Segmentation (Stage 3)
+torch>=2.1
+monai>=1.3
+nibabel>=5.1
+
+# Optional (cleanup/postproc)
+scikit-image>=0.21
+
+# Optional (radiomics)
+pyradiomics>=3.0
+
+# Optional (cloud LLMs)
+openai>=1.0
+anthropic>=0.25
+google-generativeai>=0.5
+
+# Shell runtime
+PyYAML>=6.0
+jsonschema>=4.0
+
+# Optional (Textual TUI shell)
+# textual>=0.44
+
+# Notes:
+# - LLM backends: vLLM OpenAI-compatible server (HTTP only) or cloud APIs (OpenAI/Anthropic/Gemini).
+# - Install into your existing conda env as needed:
+#     pip install -r requirements.txt

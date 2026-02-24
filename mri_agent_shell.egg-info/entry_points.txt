@@ -1,0 +1,2 @@
+[console_scripts]
+mri-agent = mri_agent_shell.cli:main
