@@ -1,0 +1,6 @@
+pydantic<3,>=2
+PyYAML>=6.0
+jsonschema>=4.0
+
+[tui]
+textual>=0.44

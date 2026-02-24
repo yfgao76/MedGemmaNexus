@@ -1,0 +1,18 @@
+# 忽略所有训练日志和结果
+runs/
+
+# 忽略具体的数据案例
+demo/cases/
+
+# 忽略常见的 Python 缓存
+__pycache__/
+*.py[cod]
+
+# 如果有权重文件也可以一并忽略
+*.pth
+*.weights
+runs/
+logs/
+reports/
+artifacts/
+__pycache__/

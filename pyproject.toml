@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mri-agent-shell"
+version = "0.1.0"
+description = "Interactive terminal shell for MRI_Agent"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "pydantic>=2,<3",
+  "PyYAML>=6.0",
+  "jsonschema>=4.0",
+]
+
+[project.optional-dependencies]
+tui = [
+  "textual>=0.44",
+]
+
+[project.scripts]
+mri-agent = "mri_agent_shell.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mri_agent_shell*"]

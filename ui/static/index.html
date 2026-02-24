@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedGemma Nexus</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="bg-orb orb-a" aria-hidden="true"></div>
+  <div class="bg-orb orb-b" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="brand">
+      <h1>MedGemma Nexus</h1>
+      <p>Comfy-style planner, execution graph, and multimodal report viewer</p>
+    </div>
+    <div class="header-actions">
+      <button id="startRunBtn" class="primary">Start Run</button>
+      <button id="reloadGraphBtn">Reload Graph</button>
+      <button id="replayBtn">Replay Last Run</button>
+    </div>
+  </header>
+
+  <section class="panel control-dock">
+    <div class="control-grid">
+      <label>Case ID
+        <input id="caseId" value="demo_case" />
+      </label>
+      <label>Domain
+        <select id="domain">
+          <option value="prostate" selected>prostate</option>
+          <option value="brain">brain</option>
+          <option value="cardiac">cardiac</option>
+        </select>
+      </label>
+      <label>Request Type
+        <select id="requestType">
+          <option value="full_pipeline" selected>full_pipeline</option>
+          <option value="segment">segment</option>
+          <option value="register">register</option>
+          <option value="lesion">lesion</option>
+          <option value="classify">classify</option>
+          <option value="report">report</option>
+        </select>
+      </label>
+      <label>LLM Mode
+        <select id="llmMode">
+          <option value="server" selected>server</option>
+          <option value="stub">stub</option>
+          <option value="openai">openai</option>
+          <option value="anthropic">anthropic</option>
+          <option value="gemini">gemini</option>
+        </select>
+      </label>
+      <label>Server Base URL
+        <input id="serverBaseUrl" value="http://127.0.0.1:8000" />
+      </label>
+      <label>Server Model
+        <input id="serverModel" value="google/medgemma-1.5-4b-it" />
+      </label>
+      <label class="wide">Case/DICOM Dir
+        <input id="dicomDir" placeholder="/path/to/case (optional)" />
+      </label>
+    </div>
+    <div class="inline-actions">
+      <button id="checkServerBtn" type="button">Check Server</button>
+      <button id="fitGraphBtn" type="button">Fit Graph</button>
+      <button id="autoLayoutBtn" type="button">Auto Layout</button>
+      <button id="focusNodeBtn" type="button">Focus Selected</button>
+    </div>
+    <div class="status-strip">
+      <div id="serverStatusPill" class="status-pill" data-state="idle">
+        <span class="pill-label">Server</span>
+        <span id="serverStatus">Not checked</span>
+      </div>
+      <div id="runStatusPill" class="status-pill" data-state="idle">
+        <span class="pill-label">Run</span>
+        <span id="runStatus">Idle</span>
+      </div>
+      <div id="graphStatsPill" class="status-pill" data-state="idle">
+        <span class="pill-label">Graph</span>
+        <span id="graphStats">Nodes: 0</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="workspace">
+    <section class="panel graph-stage">
+      <div class="panel-head">
+        <h2>Execution Graph</h2>
+      </div>
+      <div id="graph"></div>
+    </section>
+
+    <aside class="side-rail">
+      <section class="panel tab-shell">
+        <div class="tab-row" role="tablist" aria-label="Side Panels">
+          <button class="tab-btn active" data-tab="inspectorTab" role="tab">Inspector</button>
+          <button class="tab-btn" data-tab="reportTab" role="tab">Report</button>
+          <button class="tab-btn" data-tab="evidenceTab" role="tab">Evidence</button>
+          <button class="tab-btn" data-tab="eventsTab" role="tab">Events</button>
+          <button class="tab-btn" data-tab="artifactsTab" role="tab">Artifacts</button>
+        </div>
+
+        <div class="tab-body">
+          <section id="inspectorTab" class="tab-panel active">
+            <h3>Node Inspector</h3>
+            <div id="inspectorNodeName">Select a node</div>
+            <div class="inspector-grid">
+              <label>Agent Choice
+                <input id="agentSelectedTool" disabled />
+              </label>
+              <label>Candidate Tools
+                <select id="toolCandidates"></select>
+              </label>
+              <label class="checkbox-line">
+                <input id="lockToolToggle" type="checkbox" />
+                Lock selected tool
+              </label>
+              <label class="checkbox-line">
+                <input id="skipNodeToggle" type="checkbox" />
+                Skip node
+              </label>
+            </div>
+            <div id="nodeRationale" class="hint">No node selected.</div>
+            <h4>Config</h4>
+            <div id="configEditor"></div>
+            <div class="inspector-actions">
+              <button id="applyNodeBtn" type="button">Apply Node Patch</button>
+              <button id="restoreDefaultsBtn" type="button">Restore Defaults</button>
+              <button id="rerunNodeBtn" type="button">Rerun From Node</button>
+            </div>
+          </section>
+
+          <section id="reportTab" class="tab-panel">
+            <h3>Report</h3>
+            <div id="reportBar">
+              <button id="renderReportBtn" type="button" disabled>Render clinical_report.md</button>
+              <a id="openReportRawLink" href="#" target="_blank" rel="noopener noreferrer">Open raw</a>
+            </div>
+            <div id="reportMeta">Waiting for report artifact.</div>
+            <article id="reportViewer">No report rendered yet.</article>
+          </section>
+
+          <section id="evidenceTab" class="tab-panel">
+            <h3>Evidence</h3>
+            <div id="evidenceGallery">No evidence yet.</div>
+          </section>
+
+          <section id="eventsTab" class="tab-panel">
+            <h3>Events</h3>
+            <div class="search-row">
+              <input id="eventFilter" placeholder="Filter event lines..." />
+            </div>
+            <pre id="events"></pre>
+          </section>
+
+          <section id="artifactsTab" class="tab-panel">
+            <h3>Artifacts</h3>
+            <div class="search-row">
+              <input id="artifactFilter" placeholder="Filter artifact paths..." />
+            </div>
+            <ul id="artifacts"></ul>
+          </section>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
