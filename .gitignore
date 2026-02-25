@@ -1,8 +1,10 @@
 # 忽略所有训练日志和结果
 runs/
 
-# 忽略具体的数据案例
-demo/cases/
+# 默认忽略 demo/cases 下的数据，但保留 Archive 三个演示案例
+demo/cases/*
+!demo/cases/Archive/
+!demo/cases/Archive/**
 
 # 忽略常见的 Python 缓存
 __pycache__/
